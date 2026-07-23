@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Klarblick</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+.kb-root {
+  --bg: #F5F6F8;
+  --surface: #FFFFFF;
+  --ink: #1C2230;
+  --ink-muted: #5B6472;
+  --border: #E1E4E8;
+  --accent: #2E5C8A;
+  --income: #3F7A5C;
+  --expense: #7C2D3A;
+  --radius: 14px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  min-height: 100%;
+  padding: 28px;
+  box-sizing: border-box;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.kb-root * { box-sizing: border-box; }
+.kb-root :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+html, body { background: #F5F6F8; margin: 0; }
+
+.kb-loading-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; min-height: 320px; color: var(--ink-muted);
+}
+.kb-spin { animation: kb-spin 1s linear infinite; }
+@keyframes kb-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .kb-spin { animation: none; }
+  .kb-root * { transition: none !important; }
+}
+
+.kb-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+.kb-brand { display: flex; flex-direction: column; }
+.kb-brand-mark { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+.kb-brand-sub { font-size: 12.5px; color: var(--ink-muted); margin-top: 2px; }
+
+.kb-month-nav { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 10px; }
+.kb-month-label { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14.5px; min-width: 130px; text-align: center; }
+
+.kb-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%; border: none; background: transparent;
+  color: var(--ink-muted); cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
+}
+.kb-icon-btn:hover { background: var(--bg); color: var(--ink); }
+
+.kb-btn {
+  display: inline-flex; align-items: center; gap: 6px; font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13.5px; font-weight: 500; border-radius: 10px; padding: 9px 14px;
+  border: 1px solid transparent; cursor: pointer; transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+.kb-btn:active { transform: scale(0.97); }
+.kb-btn-primary { background: var(--accent); color: #fff; }
+.kb-btn-primary:hover { background: #274d75; }
+.kb-btn-ghost { background: var(--surface); color: var(--ink); border-color: var(--border); }
+.kb-btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+.kb-summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+.kb-summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+.kb-summary-label { font-size: 12.5px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.kb-summary-value { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.kb-summary-value.income { color: var(--income); }
+.kb-summary-value.expense { color: var(--expense); }
+.kb-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; width: fit-content; color: var(--ink-muted); }
+.kb-delta.up { color: var(--income); }
+.kb-delta.down { color: var(--ink-muted); }
+.kb-delta.bad { color: var(--expense); }
+.kb-delta.good { color: var(--income); }
+
+.kb-banner-error { background: #FBEAEC; color: var(--expense); border: 1px solid #F1C9CF; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; }
+.kb-banner-info { background: #EAF2ED; color: var(--income); border: 1px solid #CFE3D6; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; }
+
+.kb-main-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; align-items: start; }
+.kb-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; min-width: 0; }
+.kb-panel-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; margin: 0 0 14px; }
+
+.kb-chart-wrap { display: flex; flex-direction: column; }
+.kb-donut { position: relative; }
+.kb-donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.kb-donut-total { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 500; }
+.kb-donut-caption { font-size: 11px; color: var(--ink-muted); }
+
+.kb-legend { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.kb-legend-row { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.kb-legend-top { display: flex; align-items: center; gap: 8px; }
+.kb-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.kb-legend-icon { color: var(--ink-muted); flex-shrink: 0; }
+.kb-legend-name { flex: 1; }
+.kb-legend-pct { color: var(--ink-muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; width: 36px; text-align: right; }
+.kb-legend-value { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; width: 90px; text-align: right; }
+
+.kb-panel-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+.kb-panel-title-row .kb-panel-title { margin: 0; }
+.kb-budget-toggle-btn {
+  display: inline-flex; align-items: center; gap: 5px; background: transparent; border: none;
+  color: var(--accent); font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; font-weight: 500;
+  cursor: pointer; padding: 4px 6px; border-radius: 8px; white-space: nowrap;
+}
+.kb-budget-toggle-btn:hover { background: var(--bg); }
+
+.kb-budget-bar-track { height: 5px; border-radius: 3px; background: var(--bg); overflow: hidden; }
+.kb-budget-bar-fill { height: 100%; border-radius: 3px; transition: width 0.2s ease; }
+.kb-budget-note { font-size: 11px; color: var(--ink-muted); font-family: 'IBM Plex Mono', monospace; }
+.kb-budget-note.over { color: var(--expense); font-weight: 500; }
+
+.kb-budget-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.kb-budget-row:last-child { border-bottom: none; }
+.kb-budget-row-name { flex: 1; font-size: 13.5px; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.kb-budget-row-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-budget-input { width: 100px; flex-shrink: 0; margin-top: 0; }
+.kb-budget-hint { font-size: 12px; color: var(--ink-muted); margin: 0 0 12px; }
+
+.kb-chart-legend { display: flex; gap: 16px; margin-bottom: 8px; }
+.kb-chart-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-muted); }
+
+.kb-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; color: var(--ink-muted); font-size: 13.5px; padding: 20px 0; }
+
+.kb-ledger { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 420px; overflow-y: auto; }
+.kb-ledger-row { display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-radius: 8px; transition: background 0.12s ease; }
+.kb-ledger-row:hover { background: var(--bg); }
+.kb-ledger-icon { width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kb-ledger-main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.kb-ledger-category { font-size: 13.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-ledger-note { font-size: 12px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-ledger-date { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-muted); flex-shrink: 0; width: 90px; }
+.kb-ledger-amount { font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-variant-numeric: tabular-nums; flex-shrink: 0; width: 100px; text-align: right; }
+.kb-ledger-amount.income { color: var(--income); }
+.kb-ledger-amount.expense { color: var(--expense); }
+.kb-ledger-delete { background: none; border: none; color: var(--ink-muted); cursor: pointer; opacity: 0; transition: opacity 0.12s ease, color 0.12s ease; flex-shrink: 0; padding: 4px; }
+.kb-ledger-row:hover .kb-ledger-delete { opacity: 1; }
+.kb-ledger-delete:hover { color: var(--expense); }
+
+.kb-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.kb-security-note { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-muted); }
+.kb-footer-actions { display: flex; align-items: center; gap: 10px; }
+.kb-reset-link { background: none; border: none; color: var(--ink-muted); font-size: 11.5px; text-decoration: underline; cursor: pointer; padding: 0; }
+.kb-reset-link:hover { color: var(--expense); }
+
+.kb-modal-backdrop { position: fixed; inset: 0; background: rgba(28, 34, 48, 0.45); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+.kb-modal { background: var(--surface); border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; padding: 22px; box-shadow: 0 20px 60px rgba(28,34,48,0.25); }
+.kb-modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.kb-modal-header h2 { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; margin: 0; }
+
+.kb-form { display: flex; flex-direction: column; gap: 6px; }
+.kb-label { font-size: 12.5px; font-weight: 500; color: var(--ink-muted); margin-top: 10px; }
+.kb-input { font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg); color: var(--ink); margin-top: 4px; width: 100%; }
+.kb-amount-input { font-family: 'IBM Plex Mono', monospace; font-size: 20px; }
+
+.kb-type-toggle { display: flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 4px; }
+.kb-type-btn { flex: 1; padding: 9px 0; border: none; background: var(--surface); color: var(--ink-muted); font-size: 13.5px; font-weight: 500; cursor: pointer; }
+.kb-type-btn.active.expense { background: var(--expense); color: #fff; }
+.kb-type-btn.active.income { background: var(--income); color: #fff; }
+
+.kb-chip-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.kb-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-muted); border-radius: 999px; padding: 7px 12px; font-size: 12.5px; cursor: pointer; transition: border-color 0.12s ease; }
+.kb-chip.active { font-weight: 500; }
+
+.kb-form-error { color: var(--expense); font-size: 12.5px; margin: 6px 0 0; }
+.kb-form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+.kb-tabs { display: flex; gap: 3px; background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 3px; }
+.kb-tab { padding: 8px 15px; border: none; background: transparent; border-radius: 8px; font-family: 'IBM Plex Sans', sans-serif; font-size: 13.5px; font-weight: 500; color: var(--ink-muted); cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+.kb-tab.active { background: var(--accent); color: #fff; }
+.kb-tab:not(.active):hover { color: var(--ink); }
+
+.kb-subheader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.kb-subheader-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; }
+
+.kb-analysis-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.kb-range-toggle { display: flex; gap: 3px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
+.kb-range-btn { padding: 6px 13px; border: none; background: transparent; border-radius: 7px; font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; font-weight: 500; color: var(--ink-muted); cursor: pointer; }
+.kb-range-btn.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(28,34,48,0.12); }
+
+.kb-insight-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+.kb-insight-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.kb-insight-label { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.045em; }
+.kb-insight-value { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-insight-sub { font-size: 11.5px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.kb-analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; margin-top: 16px; }
+.kb-axis-tick { font-family: 'IBM Plex Mono', monospace; font-size: 11px; fill: var(--ink-muted); }
+.kb-chart-caption { font-size: 12px; color: var(--ink-muted); margin: 10px 0 0; }
+
+@media (max-width: 760px) {
+  .kb-root { padding: 16px; }
+  .kb-header { flex-direction: column; align-items: stretch; }
+  .kb-summary-row { grid-template-columns: 1fr; }
+  .kb-main-grid { grid-template-columns: 1fr; }
+  .kb-ledger-note { display: none; }
+  .kb-footer { flex-direction: column; align-items: stretch; }
+  .kb-insight-row { grid-template-columns: repeat(2, 1fr); }
+  .kb-analysis-grid { grid-template-columns: 1fr; }
+  .kb-analysis-header { flex-direction: column; align-items: stretch; }
+  .kb-ledger-delete { opacity: 1; padding: 8px; }
+}
+
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="kb-root kb-loading-screen">
+    <p>Klarblick wird geladen …</p>
+    <p style="font-size:12px;max-width:360px;text-align:center;">
+      Falls hier dauerhaft nichts erscheint, prüfe deine Internetverbindung
+      (beim allerersten Start werden React und die Schriftart einmalig geladen).
+    </p>
+  </div>
+</div>
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+
+<script>
+/* ===== Klarblick – Standalone-Version (ohne Build-Tools, ohne Internet nach dem ersten Laden der Schrift) ===== */
+(function () {
+  'use strict';
+  var h = React.createElement;
+
+  /* ---------- Konstanten ---------- */
+  var STORAGE_KEY = 'klarblick-data';
+
+  var EXPENSE_CATEGORIES = [
+    { name: 'Essen', icon: 'utensils', color: '#C17817' },
+    { name: 'Miete & Wohnen', icon: 'home', color: '#35618F' },
+    { name: 'Transport', icon: 'car', color: '#1F7A6C' },
+    { name: 'Freizeit & Hobby', icon: 'film', color: '#7B4FA3' },
+    { name: 'Gesundheit', icon: 'heart', color: '#C0447A' },
+    { name: 'Bildung', icon: 'graduationCap', color: '#6B7F3F' },
+    { name: 'Shopping', icon: 'shoppingBag', color: '#5C6B73' },
+    { name: 'Sonstiges', icon: 'moreHorizontal', color: '#8A8578' },
+  ];
+
+  var INCOME_CATEGORIES = [
+    { name: 'Gehalt / Werkstudent', icon: 'briefcase', color: '#3F7A5C' },
+    { name: 'BAföG & Förderung', icon: 'landmark', color: '#2E5C8A' },
+    { name: 'Sonstige Einnahme', icon: 'wallet', color: '#4C8A6E' },
+  ];
+
+  var EXTRA_PALETTE = ['#A63D5A', '#3D6B8A', '#8A6B3D', '#5A8A3D', '#6B3D8A', '#3D8A7A', '#8A3D3D', '#3D5A8A', '#8A5A3D', '#5A3D8A'];
+
+  var SHORT_MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  var LONG_MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+
+  /* ---------- Reine Helfer-Funktionen ---------- */
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  function todayLocalISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  function currentMonthStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1);
+  }
+
+  function shiftMonth(monthStr, delta) {
+    var parts = monthStr.split('-').map(Number);
+    var d = new Date(parts[0], parts[1] - 1 + delta, 1);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1);
+  }
+
+  function formatMonthLabel(monthStr) {
+    var parts = monthStr.split('-').map(Number);
+    return LONG_MONTHS[parts[1] - 1] + ' ' + parts[0];
+  }
+
+  function formatMonthLabelShort(monthStr) {
+    var parts = monthStr.split('-').map(Number);
+    return SHORT_MONTHS[parts[1] - 1] + ' ' + String(parts[0]).slice(2);
+  }
+
+  function formatCurrency(value) {
+    var n = Number(value) || 0;
+    var neg = n < 0;
+    var fixed = Math.abs(n).toFixed(2).replace('.', ',');
+    var p = fixed.split(',');
+    p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return (neg ? '-' : '') + p.join(',') + ' €';
+  }
+
+  function formatCurrencyCompact(value) {
+    return Math.abs(value) >= 1000 ? (value / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + 'k €' : formatCurrency(value);
+  }
+
+  function formatDateShort(dateStr) {
+    var parts = dateStr.split('-').map(Number);
+    return pad2(parts[2]) + '.' + pad2(parts[1]) + '.' + parts[0];
+  }
+
+  function parseFlexibleDate(raw) {
+    var trimmed = (raw || '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+    var deMatch = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (deMatch) return deMatch[3] + '-' + pad2(Number(deMatch[2])) + '-' + pad2(Number(deMatch[1]));
+    var parsed = new Date(trimmed);
+    if (!isNaN(parsed.getTime())) return parsed.getFullYear() + '-' + pad2(parsed.getMonth() + 1) + '-' + pad2(parsed.getDate());
+    return null;
+  }
+
+  function parseGermanAmount(raw) {
+    var s = (raw || '').trim();
+    if (!s) return NaN;
+    if (/^-?\d{1,3}(\.\d{3})*(,\d+)?$/.test(s)) s = s.replace(/\./g, '').replace(',', '.');
+    else s = s.replace(',', '.');
+    return parseFloat(s);
+  }
+
+  function generateId() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    return Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+  }
+
+  function getCategoryMeta(name, type, customCategories) {
+    var presets = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+    var preset = presets.find(function (c) { return c.name === name; });
+    if (preset) return preset;
+    var custom = customCategories.find(function (c) { return c.name === name && c.type === type; });
+    if (custom) return custom;
+    return { name: name, icon: 'tag', color: '#8A8578' };
+  }
+
+  /* ---------- CSV ---------- */
+  function parseCSV(text, delimiter) {
+    delimiter = delimiter || ';';
+    var rows = [], row = [], field = '', inQuotes = false;
+    function pushField() { row.push(field); field = ''; }
+    function pushRow() { rows.push(row); row = []; }
+    var s = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    for (var i = 0; i < s.length; i++) {
+      var c = s[i];
+      if (inQuotes) {
+        if (c === '"') { if (s[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
+        else field += c;
+      } else if (c === '"') inQuotes = true;
+      else if (c === delimiter) pushField();
+      else if (c === '\n') { pushField(); pushRow(); }
+      else field += c;
+    }
+    if (field.length > 0 || row.length > 0) { pushField(); pushRow(); }
+    var nonEmpty = rows.filter(function (r) { return !(r.length === 1 && r[0].trim() === ''); });
+    if (nonEmpty.length === 0) return { header: [], data: [] };
+    var header = nonEmpty[0].map(function (x) { return x.trim(); });
+    var data = nonEmpty.slice(1).map(function (r) {
+      var obj = {};
+      header.forEach(function (hd, idx) { obj[hd] = r[idx] !== undefined ? r[idx] : ''; });
+      return obj;
+    });
+    return { header: header, data: data };
+  }
+
+  function buildExportCSV(transactions) {
+    var header = 'Datum;Typ;Kategorie;Betrag;Notiz';
+    var rows = transactions.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }).map(function (t) {
+      var typ = t.type === 'income' ? 'Einnahme' : 'Ausgabe';
+      var betrag = t.amount.toFixed(2).replace('.', ',');
+      var notiz = (t.note || '').replace(/;/g, ',').replace(/\r?\n/g, ' ');
+      return t.date + ';' + typ + ';' + t.category + ';' + betrag + ';' + notiz;
+    });
+    return [header].concat(rows).join('\r\n');
+  }
+
+  function buildDedupeKey(t) {
+    var noteNorm = (t.note || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    return [t.date, t.type, Math.abs(Number(t.amount)).toFixed(2), noteNorm].join('|');
+  }
+
+  function mapImportRows(rows, customCategories, existingTransactions) {
+    var importedTx = [], newCats = [], paletteOffset = customCategories.length, successCount = 0, failCount = 0, duplicateCount = 0, pendingSkipped = 0;
+    var seenKeys = {};
+    (existingTransactions || []).forEach(function (t) { seenKeys[buildDedupeKey(t)] = true; });
+
+    rows.forEach(function (row) {
+      // Sparkasse markiert noch nicht gebuchte (vorläufige) Umsätze über die Spalte "Info".
+      // Diese ändern sich oft noch leicht, bevor sie endgültig gebucht werden -> überspringen,
+      // sonst gibt es beim nächsten Import ggf. einen echten Doppel-Eintrag.
+      if ((row['Info'] || '').trim().toLowerCase() === 'umsatz vorgemerkt') { pendingSkipped++; return; }
+
+      var datumRaw = row['Datum'] || row['Buchungstag'] || row['Valutadatum'];
+      var amountRaw = row['Betrag'];
+      if (!datumRaw || amountRaw === undefined || amountRaw === '') return;
+      var datum = parseFlexibleDate(datumRaw);
+      var amount = parseGermanAmount(amountRaw);
+      if (!datum || isNaN(amount)) { failCount++; return; }
+
+      var typRaw = (row['Typ'] || '').trim().toLowerCase();
+      var type;
+      if (typRaw.indexOf('einnahme') === 0) type = 'income';
+      else if (typRaw.indexOf('ausgabe') === 0) type = 'expense';
+      else type = amount >= 0 ? 'income' : 'expense';
+
+      var kategorie = (row['Kategorie'] || '').trim();
+      if (!kategorie || kategorie.toLowerCase() === 'nicht zugeordnet') kategorie = type === 'income' ? 'Sonstige Einnahme' : 'Sonstiges';
+
+      var notiz = (row['Notiz'] || '').trim();
+      if (!notiz) {
+        var partner = (row['Beguenstigter/Zahlungspflichtiger'] || row['Begünstigter/Zahlungspflichtiger'] || '').trim();
+        var zweck = (row['Verwendungszweck'] || '').trim().replace(/\s+/g, ' ');
+        var buchungstext = (row['Buchungstext'] || '').trim();
+        notiz = [partner, zweck].filter(Boolean).join(' - ') || buchungstext;
+      }
+
+      var candidate = { type: type, amount: Math.abs(amount), date: datum, note: notiz };
+      var key = buildDedupeKey(candidate);
+      if (seenKeys[key]) { duplicateCount++; return; }
+      seenKeys[key] = true;
+
+      var presets = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+      var existsAsPreset = presets.some(function (c) { return c.name === kategorie; });
+      var existsAsCustom = customCategories.some(function (c) { return c.name === kategorie && c.type === type; }) ||
+        newCats.some(function (c) { return c.name === kategorie && c.type === type; });
+
+      if (!existsAsPreset && !existsAsCustom) {
+        newCats.push({ name: kategorie, type: type, color: EXTRA_PALETTE[paletteOffset % EXTRA_PALETTE.length] });
+        paletteOffset += 1;
+      }
+
+      importedTx.push({ id: generateId(), type: type, category: kategorie, amount: candidate.amount, date: datum, note: notiz });
+      successCount++;
+    });
+    return { importedTx: importedTx, newCats: newCats, successCount: successCount, failCount: failCount, duplicateCount: duplicateCount, pendingSkipped: pendingSkipped };
+  }
+
+  /* ---------- Storage (localStorage, funktioniert offline & lokal) ---------- */
+  var storageAPI = {
+    get: function (key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
+    set: function (key, value) { localStorage.setItem(key, value); },
+  };
+
+  window.KB = {
+    h: h, STORAGE_KEY: STORAGE_KEY, EXPENSE_CATEGORIES: EXPENSE_CATEGORIES, INCOME_CATEGORIES: INCOME_CATEGORIES,
+    EXTRA_PALETTE: EXTRA_PALETTE, todayLocalISO: todayLocalISO, currentMonthStr: currentMonthStr, shiftMonth: shiftMonth,
+    formatMonthLabel: formatMonthLabel, formatMonthLabelShort: formatMonthLabelShort, formatCurrency: formatCurrency,
+    formatCurrencyCompact: formatCurrencyCompact, formatDateShort: formatDateShort, parseFlexibleDate: parseFlexibleDate,
+    parseGermanAmount: parseGermanAmount, generateId: generateId, getCategoryMeta: getCategoryMeta, parseCSV: parseCSV,
+    buildExportCSV: buildExportCSV, mapImportRows: mapImportRows, storageAPI: storageAPI,
+  };
+})();
+
+</script>
+<script>
+/* ===== Klarblick – Icon-Set (eigene minimalistische Strich-Icons, 24x24) ===== */
+(function () {
+  'use strict';
+  var h = React.createElement;
+
+  function P(d, extra) { return h('path', Object.assign({ d: d }, extra || {})); }
+  function C(cx, cy, r, extra) { return h('circle', Object.assign({ cx: cx, cy: cy, r: r }, extra || {})); }
+  function R(x, y, w, hgt, rx, extra) { return h('rect', Object.assign({ x: x, y: y, width: w, height: hgt, rx: rx || 0 }, extra || {})); }
+
+  var ICONS = {
+    plus: function () { return [P('M12 5v14M5 12h14')]; },
+    x: function () { return [P('M18 6L6 18M6 6l12 12')]; },
+    trash: function () { return [P('M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m3 0-1 13a2 2 0 01-2 2H9a2 2 0 01-2-2L6 7')]; },
+    chevronLeft: function () { return [P('M15 18l-6-6 6-6')]; },
+    chevronRight: function () { return [P('M9 18l6-6-6-6')]; },
+    download: function () { return [P('M12 3v11m0 0l-4-4m4 4l4-4'), P('M4 19h16')]; },
+    upload: function () { return [P('M12 14V3m0 0l-4 4m4-4l4 4'), P('M4 19h16')]; },
+    arrowUp: function () { return [P('M12 19V6M6 12l6-6 6 6')]; },
+    arrowDown: function () { return [P('M12 5v13M6 12l6 6 6-6')]; },
+    loader: function () { return [C(12, 12, 8, { opacity: 0.25 }), P('M20 12a8 8 0 00-8-8')]; },
+    shield: function () { return [P('M12 3l7 3v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z'), P('M9 12l2 2 4-4')]; },
+    tag: function () { return [P('M20 12.5L11.5 21 3 12.5V4h8.5L20 12.5z'), C(7, 7, 1.4)]; },
+    utensils: function () { return [P('M5 2v7a2 2 0 002 2v11'), P('M5 2v6M9 2v6'), P('M17 2c-2.2 0-4 2.7-4 6s1.8 5 4 5v9')]; },
+    home: function () { return [P('M4 11l8-7 8 7'), P('M6 10v10h12V10')]; },
+    car: function () { return [P('M4 16l1.5-5.5A2 2 0 017.4 9h9.2a2 2 0 011.9 1.5L20 16'), R(3, 16, 18, 4, 1.5), C(7.5, 20, 1.4), C(16.5, 20, 1.4)]; },
+    film: function () { return [R(3, 4, 18, 16, 2), P('M3 9h18M3 15h18M8.5 4v16M15.5 4v16')]; },
+    heart: function () { return [P('M12 20.5s-7.2-4.4-9.7-9C.8 8 2.3 4.3 5.7 4.3c2.3 0 4.1 1.5 6.3 4 2.2-2.5 4-4 6.3-4 3.4 0 4.9 3.7 3.4 7.2-2.5 4.6-9.7 9-9.7 9z')]; },
+    graduationCap: function () { return [P('M2 9l10-5 10 5-10 5-10-5z'), P('M6 11.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5'), P('M22 9v6')]; },
+    shoppingBag: function () { return [P('M6 8h12l-1 12.5a1 1 0 01-1 .9H8a1 1 0 01-1-.9L6 8z'), P('M9 8V6.5a3 3 0 016 0V8')]; },
+    moreHorizontal: function () { return [C(5, 12, 1.6), C(12, 12, 1.6), C(19, 12, 1.6)]; },
+    briefcase: function () { return [R(3, 7.5, 18, 12, 2), P('M8 7.5v-2a2 2 0 012-2h4a2 2 0 012 2v2'), P('M3 13h18')]; },
+    landmark: function () { return [P('M3 21h18'), P('M4 21V10.5'), P('M20 21V10.5'), P('M2 10.5l10-6 10 6z'), P('M7 10.5V17M12 10.5V17M17 10.5V17')]; },
+    wallet: function () { return [R(3, 6.5, 18, 12.5, 2.5), P('M3 10.5h18'), C(16.5, 14.5, 1.2)]; },
+    sliders: function () { return [P('M4 6h10M17 6h3'), C(14, 6, 2), P('M4 12h3M10 12h10'), C(7, 12, 2), P('M4 18h10M17 18h3'), C(14, 18, 2)]; },
+  };
+
+  function Icon(props) {
+    var name = props.name, size = props.size || 16, className = props.className, style = props.style;
+    var children = (ICONS[name] || ICONS.tag)().map(function (child, i) {
+      return React.cloneElement(child, { key: i });
+    });
+    return h('svg', {
+      xmlns: 'http://www.w3.org/2000/svg', width: size, height: size, viewBox: '0 0 24 24',
+      fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round',
+      className: className, style: style, 'aria-hidden': 'true',
+    }, children);
+  }
+
+  window.KB = window.KB || {};
+  window.KB.Icon = Icon;
+})();
+
+</script>
+<script>
+/* ===== Klarblick – SVG-Diagramme (ersetzt recharts, keine externen Abhängigkeiten) ===== */
+(function () {
+  'use strict';
+  var h = React.createElement;
+  var KB = window.KB;
+
+  /* ---------- Geometrie-Helfer ---------- */
+  function polarToCartesian(cx, cy, r, angleDeg) {
+    var a = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  }
+
+  function donutArcPath(cx, cy, outerR, innerR, startAngle, endAngle) {
+    var largeArc = endAngle - startAngle > 180 ? 1 : 0;
+    var p1 = polarToCartesian(cx, cy, outerR, endAngle);
+    var p2 = polarToCartesian(cx, cy, outerR, startAngle);
+    var p3 = polarToCartesian(cx, cy, innerR, startAngle);
+    var p4 = polarToCartesian(cx, cy, innerR, endAngle);
+    return ['M', p1.x, p1.y, 'A', outerR, outerR, 0, largeArc, 0, p2.x, p2.y,
+      'L', p3.x, p3.y, 'A', innerR, innerR, 0, largeArc, 1, p4.x, p4.y, 'Z'].join(' ');
+  }
+
+  function donutSegments(data, cx, cy, outerR, innerR, padAngle) {
+    var total = data.reduce(function (s, d) { return s + d.value; }, 0);
+    if (total <= 0) return [];
+    var singleFull = data.filter(function (d) { return d.value > 0; }).length === 1;
+    var effectivePad = singleFull ? 0 : (padAngle || 0);
+    var angle = 0;
+    return data.map(function (d) {
+      var sweep = (d.value / total) * 360;
+      var start = angle + effectivePad / 2;
+      var end = angle + sweep - effectivePad / 2;
+      if (end < start) end = start;
+      angle += sweep;
+      return {
+        name: d.name, value: d.value, color: d.meta ? d.meta.color : d.color,
+        path: singleFull ? donutArcPath(cx, cy, outerR, innerR, 0.01, 359.99) : donutArcPath(cx, cy, outerR, innerR, start, end),
+      };
+    });
+  }
+
+  function niceMax(value) {
+    if (value <= 0) return 10;
+    var magnitude = Math.pow(10, Math.floor(Math.log10(value)));
+    var normalized = value / magnitude;
+    var niceNormalized = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+    return niceNormalized * magnitude;
+  }
+
+  /* ---------- Donut-Diagramm ---------- */
+  function DonutChart(props) {
+    var data = props.data, size = 220, cx = 110, cy = 110, outerR = 92, innerR = 62;
+    var segs = donutSegments(data, cx, cy, outerR, innerR, 2.5);
+    return h('svg', { viewBox: '0 0 ' + size + ' ' + size, width: '100%', style: { display: 'block', maxWidth: 220, margin: '0 auto' }, role: 'img', 'aria-label': 'Ausgaben nach Kategorie' },
+      segs.map(function (s) { return h('path', { key: s.name, d: s.path, fill: s.color }); })
+    );
+  }
+
+  /* ---------- Gruppiertes Balkendiagramm (Einnahmen vs. Ausgaben) ---------- */
+  function GroupedBarChart(props) {
+    var data = props.data || [];
+    var W = 640, H = 260;
+    var margin = { top: 10, right: 8, bottom: 26, left: 54 };
+    var plotW = W - margin.left - margin.right;
+    var plotH = H - margin.top - margin.bottom;
+    var maxVal = niceMax(Math.max.apply(null, data.map(function (d) { return Math.max(d.Einnahmen, d.Ausgaben); }).concat([0])));
+    var n = Math.max(data.length, 1);
+    var groupW = plotW / n;
+    var barW = Math.min(22, groupW * 0.32);
+    var gridLines = [0, 0.25, 0.5, 0.75, 1].map(function (f) { return f * maxVal; });
+
+    var bars = [];
+    var xLabels = [];
+    data.forEach(function (d, i) {
+      var gx = margin.left + i * groupW;
+      var centerX = gx + groupW / 2;
+      var hIncome = plotH * (d.Einnahmen / maxVal);
+      var hExpense = plotH * (d.Ausgaben / maxVal);
+      var yBase = margin.top + plotH;
+      bars.push(h('rect', { key: 'in' + i, x: centerX - barW - 2, y: yBase - hIncome, width: barW, height: hIncome, rx: 3, fill: '#3F7A5C' }));
+      bars.push(h('rect', { key: 'ex' + i, x: centerX + 2, y: yBase - hExpense, width: barW, height: hExpense, rx: 3, fill: '#7C2D3A' }));
+      xLabels.push(h('text', { key: 'lbl' + i, x: centerX, y: H - 6, textAnchor: 'middle', className: 'kb-axis-tick' }, d.label));
+    });
+
+    var yTicks = gridLines.map(function (v, i) {
+      var y = margin.top + plotH - plotH * (v / (maxVal || 1));
+      return h('g', { key: i },
+        h('line', { x1: margin.left, x2: W - margin.right, y1: y, y2: y, stroke: '#E1E4E8', strokeDasharray: '3 3' }),
+        h('text', { x: margin.left - 8, y: y + 3, textAnchor: 'end', className: 'kb-axis-tick' }, KB.formatCurrencyCompact(v))
+      );
+    });
+
+    return h('div', null,
+      h('div', { className: 'kb-chart-legend' },
+        h('span', { className: 'kb-chart-legend-item' }, h('span', { className: 'kb-legend-dot', style: { background: '#3F7A5C' } }), 'Einnahmen'),
+        h('span', { className: 'kb-chart-legend-item' }, h('span', { className: 'kb-legend-dot', style: { background: '#7C2D3A' } }), 'Ausgaben')
+      ),
+      h('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', style: { display: 'block' } },
+        yTicks, bars, xLabels
+      )
+    );
+  }
+
+  /* ---------- Liniendiagramm (Saldo-Verlauf) ---------- */
+  function LineChartSVG(props) {
+    var data = props.data || [];
+    var dataKey = props.dataKey || 'Saldo';
+    var W = 640, H = 230;
+    var margin = { top: 10, right: 12, bottom: 26, left: 54 };
+    var plotW = W - margin.left - margin.right;
+    var plotH = H - margin.top - margin.bottom;
+    var values = data.map(function (d) { return d[dataKey]; });
+    var maxAbs = Math.max.apply(null, values.map(Math.abs).concat([0]));
+    var maxVal = niceMax(maxAbs || 1);
+    var minVal = -maxVal;
+    var n = Math.max(data.length - 1, 1);
+
+    function xAt(i) { return margin.left + (i / n) * plotW; }
+    function yAt(v) { return margin.top + plotH - ((v - minVal) / (maxVal - minVal)) * plotH; }
+
+    var gridVals = [-maxVal, -maxVal / 2, 0, maxVal / 2, maxVal];
+    var yTicks = gridVals.map(function (v, i) {
+      var y = yAt(v);
+      return h('g', { key: i },
+        h('line', { x1: margin.left, x2: W - margin.right, y1: y, y2: y, stroke: '#E1E4E8', strokeDasharray: '3 3' }),
+        h('text', { x: margin.left - 8, y: y + 3, textAnchor: 'end', className: 'kb-axis-tick' }, KB.formatCurrencyCompact(v))
+      );
+    });
+
+    var points = data.map(function (d, i) { return xAt(i) + ',' + yAt(d[dataKey]); }).join(' ');
+    var xLabels = data.map(function (d, i) {
+      return h('text', { key: i, x: xAt(i), y: H - 6, textAnchor: 'middle', className: 'kb-axis-tick' }, d.label);
+    });
+    var dots = data.map(function (d, i) {
+      return h('circle', { key: i, cx: xAt(i), cy: yAt(d[dataKey]), r: 3.5, fill: '#2E5C8A' });
+    });
+
+    return h('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', style: { display: 'block' } },
+      yTicks,
+      h('polyline', { points: points, fill: 'none', stroke: '#2E5C8A', strokeWidth: 2.5, strokeLinejoin: 'round', strokeLinecap: 'round' }),
+      dots, xLabels
+    );
+  }
+
+  /* ---------- Horizontales Balkendiagramm (Top-Kategorien) ---------- */
+  function HBarChart(props) {
+    var data = props.data || [];
+    var W = 640;
+    var rowH = 34;
+    var H = Math.max(170, data.length * rowH);
+    var margin = { top: 4, right: 90, bottom: 4, left: 130 };
+    var plotW = W - margin.left - margin.right;
+    var maxVal = niceMax(Math.max.apply(null, data.map(function (d) { return d.value; }).concat([0])));
+
+    var rows = data.map(function (d, i) {
+      var y = margin.top + i * rowH;
+      var barH = 16;
+      var barW = plotW * (d.value / (maxVal || 1));
+      return h('g', { key: d.name },
+        h('text', { x: margin.left - 10, y: y + barH / 2 + 4, textAnchor: 'end', className: 'kb-axis-tick', style: { fill: '#1C2230', fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12 } }, d.name),
+        h('rect', { x: margin.left, y: y, width: Math.max(barW, 2), height: barH, rx: 4, fill: d.meta.color }),
+        h('text', { x: margin.left + barW + 8, y: y + barH / 2 + 4, className: 'kb-axis-tick' }, KB.formatCurrency(d.value))
+      );
+    });
+
+    return h('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', style: { display: 'block' } }, rows);
+  }
+
+  window.KB = window.KB || {};
+  window.KB.DonutChart = DonutChart;
+  window.KB.GroupedBarChart = GroupedBarChart;
+  window.KB.LineChartSVG = LineChartSVG;
+  window.KB.HBarChart = HBarChart;
+})();
+
+</script>
+<script>
+/* ===== Klarblick – Formular für neue Buchungen ===== */
+(function () {
+  'use strict';
+  var h = React.createElement;
+  var useState = React.useState;
+  var useEffect = React.useEffect;
+  var KB = window.KB;
+  var Icon = KB.Icon;
+
+  function TransactionForm(props) {
+    var customCategories = props.customCategories, onSubmit = props.onSubmit, onClose = props.onClose;
+    var typeState = useState('expense'); var type = typeState[0], setType = typeState[1];
+    var amountState = useState(''); var amount = amountState[0], setAmount = amountState[1];
+    var categoryState = useState(KB.EXPENSE_CATEGORIES[0].name); var category = categoryState[0], setCategory = categoryState[1];
+    var dateState = useState(KB.todayLocalISO()); var date = dateState[0], setDate = dateState[1];
+    var noteState = useState(''); var note = noteState[0], setNote = noteState[1];
+    var showCustomState = useState(false); var showCustomInput = showCustomState[0], setShowCustomInput = showCustomState[1];
+    var customNameState = useState(''); var customName = customNameState[0], setCustomName = customNameState[1];
+    var errorState = useState(''); var formError = errorState[0], setFormError = errorState[1];
+
+    var presets = type === 'income' ? KB.INCOME_CATEGORIES : KB.EXPENSE_CATEGORIES;
+    var customOptions = customCategories.filter(function (c) { return c.type === type; });
+    var allOptions = presets.concat(customOptions);
+
+    function handleTypeChange(newType) {
+      setType(newType);
+      var newPresets = newType === 'income' ? KB.INCOME_CATEGORIES : KB.EXPENSE_CATEGORIES;
+      setCategory(newPresets[0].name);
+      setShowCustomInput(false);
+      setCustomName('');
+    }
+
+    useEffect(function () {
+      function handleKey(e) { if (e.key === 'Escape') onClose(); }
+      window.addEventListener('keydown', handleKey);
+      return function () { window.removeEventListener('keydown', handleKey); };
+    }, [onClose]);
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      var parsedAmount = parseFloat(String(amount).replace(',', '.'));
+      if (isNaN(parsedAmount) || parsedAmount <= 0) { setFormError('Bitte einen Betrag größer als 0 eingeben.'); return; }
+      if (!date) { setFormError('Bitte ein Datum wählen.'); return; }
+      var finalCategory = category;
+      var newCustomCategory = null;
+      if (showCustomInput) {
+        var trimmed = customName.trim();
+        if (!trimmed) { setFormError('Bitte einen Namen für die eigene Kategorie eingeben.'); return; }
+        var existing = allOptions.find(function (c) { return c.name.toLowerCase() === trimmed.toLowerCase(); });
+        if (existing) finalCategory = existing.name;
+        else {
+          finalCategory = trimmed;
+          newCustomCategory = { name: trimmed, type: type, color: KB.EXTRA_PALETTE[customCategories.length % KB.EXTRA_PALETTE.length] };
+        }
+      }
+      onSubmit({ id: KB.generateId(), type: type, category: finalCategory, amount: parsedAmount, date: date, note: note.trim() }, newCustomCategory);
+      onClose();
+    }
+
+    var chips = allOptions.map(function (c) {
+      var isActive = !showCustomInput && category === c.name;
+      var style = isActive ? { borderColor: c.color, color: c.color, background: c.color + '14' } : undefined;
+      return h('button', {
+        type: 'button', key: c.name, className: 'kb-chip' + (isActive ? ' active' : ''), style: style,
+        onClick: function () { setCategory(c.name); setShowCustomInput(false); },
+      }, h(Icon, { name: c.icon, size: 16 }), h('span', null, c.name));
+    });
+    chips.push(h('button', {
+      type: 'button', key: '__custom__', className: 'kb-chip' + (showCustomInput ? ' active' : ''),
+      onClick: function () { setShowCustomInput(true); },
+    }, h(Icon, { name: 'tag', size: 16 }), h('span', null, 'Eigene…')));
+
+    return h('div', { className: 'kb-modal-backdrop', onMouseDown: function (e) { if (e.target === e.currentTarget) onClose(); } },
+      h('div', { className: 'kb-modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Neue Buchung erfassen' },
+        h('div', { className: 'kb-modal-header' },
+          h('h2', null, 'Neue Buchung'),
+          h('button', { type: 'button', className: 'kb-icon-btn', onClick: onClose, 'aria-label': 'Schließen' }, h(Icon, { name: 'x', size: 20 }))
+        ),
+        h('form', { onSubmit: handleSubmit, className: 'kb-form' },
+          h('div', { className: 'kb-type-toggle' },
+            h('button', { type: 'button', className: 'kb-type-btn' + (type === 'expense' ? ' active expense' : ''), onClick: function () { handleTypeChange('expense'); } }, 'Ausgabe'),
+            h('button', { type: 'button', className: 'kb-type-btn' + (type === 'income' ? ' active income' : ''), onClick: function () { handleTypeChange('income'); } }, 'Einnahme')
+          ),
+          h('label', { className: 'kb-label', htmlFor: 'kb-amount' }, 'Betrag (€)'),
+          h('input', {
+            id: 'kb-amount', className: 'kb-input kb-amount-input', type: 'text', inputMode: 'decimal', placeholder: '0,00',
+            value: amount, onChange: function (e) { setAmount(e.target.value.replace(/[^0-9.,]/g, '')); }, autoFocus: true,
+          }),
+          h('label', { className: 'kb-label' }, 'Kategorie'),
+          h('div', { className: 'kb-chip-grid' }, chips),
+          showCustomInput ? h('input', {
+            className: 'kb-input', type: 'text', placeholder: 'Name der Kategorie',
+            value: customName, onChange: function (e) { setCustomName(e.target.value); },
+          }) : null,
+          h('label', { className: 'kb-label', htmlFor: 'kb-date' }, 'Datum'),
+          h('input', { id: 'kb-date', className: 'kb-input', type: 'date', value: date, onChange: function (e) { setDate(e.target.value); } }),
+          h('label', { className: 'kb-label', htmlFor: 'kb-note' }, 'Notiz (optional)'),
+          h('input', {
+            id: 'kb-note', className: 'kb-input', type: 'text', placeholder: 'z. B. Wocheneinkauf Rewe',
+            value: note, onChange: function (e) { setNote(e.target.value); },
+          }),
+          formError ? h('p', { className: 'kb-form-error' }, formError) : null,
+          h('div', { className: 'kb-form-actions' },
+            h('button', { type: 'button', className: 'kb-btn kb-btn-ghost', onClick: onClose }, 'Abbrechen'),
+            h('button', { type: 'submit', className: 'kb-btn kb-btn-primary' }, 'Hinzufügen')
+          )
+        )
+      )
+    );
+  }
+
+  window.KB = window.KB || {};
+  window.KB.TransactionForm = TransactionForm;
+})();
+
+</script>
+<script>
+/* ===== Klarblick – Hauptanwendung ===== */
+(function () {
+  'use strict';
+  var h = React.createElement;
+  var useState = React.useState;
+  var useMemo = React.useMemo;
+  var useRef = React.useRef;
+  var KB = window.KB;
+  var Icon = KB.Icon;
+  var TransactionForm = KB.TransactionForm;
+  var DonutChart = KB.DonutChart;
+  var GroupedBarChart = KB.GroupedBarChart;
+  var LineChartSVG = KB.LineChartSVG;
+  var HBarChart = KB.HBarChart;
+
+  function BudgetForm(props) {
+    var budgets = props.budgets, customCategories = props.customCategories, onSave = props.onSave, onClose = props.onClose;
+    var allExpenseCats = KB.EXPENSE_CATEGORIES.concat(customCategories.filter(function (c) { return c.type === 'expense'; }));
+    var initialValues = {};
+    allExpenseCats.forEach(function (c) { initialValues[c.name] = budgets[c.name] > 0 ? String(budgets[c.name]).replace('.', ',') : ''; });
+    var valuesState = React.useState(initialValues); var values = valuesState[0], setValues = valuesState[1];
+
+    React.useEffect(function () {
+      function handleKey(e) { if (e.key === 'Escape') onClose(); }
+      window.addEventListener('keydown', handleKey);
+      return function () { window.removeEventListener('keydown', handleKey); };
+    }, [onClose]);
+
+    function handleChange(name, raw) {
+      setValues(function (prev) {
+        var next = {}; for (var k in prev) next[k] = prev[k];
+        next[name] = raw.replace(/[^0-9,]/g, '');
+        return next;
+      });
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      var next = {};
+      allExpenseCats.forEach(function (c) {
+        var raw = (values[c.name] || '').trim();
+        if (!raw) return;
+        var parsed = parseFloat(raw.replace(',', '.'));
+        if (!isNaN(parsed) && parsed > 0) next[c.name] = Math.round(parsed * 100) / 100;
+      });
+      onSave(next);
+    }
+
+    return h('div', { className: 'kb-modal-backdrop', onMouseDown: function (e) { if (e.target === e.currentTarget) onClose(); } },
+      h('div', { className: 'kb-modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Budgets pro Kategorie' },
+        h('div', { className: 'kb-modal-header' },
+          h('h2', null, 'Monatsbudgets'),
+          h('button', { type: 'button', className: 'kb-icon-btn', onClick: onClose, 'aria-label': 'Schließen' }, h(Icon, { name: 'x', size: 20 }))
+        ),
+        h('p', { className: 'kb-budget-hint' }, 'Lege pro Kategorie ein monatliches Limit fest (in €). Leer lassen = kein Limit. Das Limit gilt für jeden Monat gleich.'),
+        h('form', { onSubmit: handleSubmit },
+          allExpenseCats.map(function (c) {
+            return h('div', { className: 'kb-budget-row', key: c.name },
+              h('span', { className: 'kb-budget-row-name' }, h(Icon, { name: c.icon, size: 15, style: { color: c.color, flexShrink: 0 } }), h('span', null, c.name)),
+              h('input', {
+                className: 'kb-input kb-budget-input', type: 'text', inputMode: 'decimal', placeholder: 'kein Limit',
+                value: values[c.name] || '', onChange: function (e) { handleChange(c.name, e.target.value); },
+              })
+            );
+          }),
+          h('div', { className: 'kb-form-actions' },
+            h('button', { type: 'button', className: 'kb-btn kb-btn-ghost', onClick: onClose }, 'Abbrechen'),
+            h('button', { type: 'submit', className: 'kb-btn kb-btn-primary' }, 'Speichern')
+          )
+        )
+      )
+    );
+  }
+
+  window.KB = window.KB || {};
+  window.KB.BudgetForm = BudgetForm;
+
+  function loadInitialData() {
+    try {
+      var raw = KB.storageAPI.get(KB.STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        return {
+          transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [],
+          customCategories: Array.isArray(parsed.customCategories) ? parsed.customCategories : [],
+          budgets: (parsed.budgets && typeof parsed.budgets === 'object') ? parsed.budgets : {},
+        };
+      }
+    } catch (e) { /* kein gültiger gespeicherter Stand */ }
+    return { transactions: [], customCategories: [], budgets: {} };
+  }
+
+  var INITIAL = loadInitialData();
+
+  function computeCategoryBreakdown(monthTx, customCategories, budgets) {
+    var map = {};
+    monthTx.filter(function (t) { return t.type === 'expense'; }).forEach(function (t) {
+      map[t.category] = (map[t.category] || 0) + t.amount;
+    });
+    return Object.keys(map).map(function (name) {
+      var budget = budgets && budgets[name] > 0 ? budgets[name] : null;
+      return {
+        name: name, value: map[name], meta: KB.getCategoryMeta(name, 'expense', customCategories),
+        budget: budget, budgetPct: budget ? Math.min(100, Math.round((map[name] / budget) * 100)) : null,
+        budgetRemaining: budget ? Math.round((budget - map[name]) * 100) / 100 : null,
+      };
+    }).sort(function (a, b) { return b.value - a.value; });
+  }
+
+  function Klarblick() {
+    var txState = useState(INITIAL.transactions); var transactions = txState[0], setTransactions = txState[1];
+    var catState = useState(INITIAL.customCategories); var customCategories = catState[0], setCustomCategories = catState[1];
+    var budgetState = useState(INITIAL.budgets); var budgets = budgetState[0], setBudgets = budgetState[1];
+    var monthState = useState(KB.currentMonthStr()); var viewedMonth = monthState[0], setViewedMonth = monthState[1];
+    var tabState = useState('uebersicht'); var activeTab = tabState[0], setActiveTab = tabState[1];
+    var rangeState = useState(6); var analysisRange = rangeState[0], setAnalysisRange = rangeState[1];
+    var formOpenState = useState(false); var isFormOpen = formOpenState[0], setIsFormOpen = formOpenState[1];
+    var budgetFormOpenState = useState(false); var isBudgetFormOpen = budgetFormOpenState[0], setIsBudgetFormOpen = budgetFormOpenState[1];
+    var errorState = useState(''); var errorMsg = errorState[0], setErrorMsg = errorState[1];
+    var infoState = useState(''); var infoMsg = infoState[0], setInfoMsg = infoState[1];
+    var savingErrState = useState(false); var savingError = savingErrState[0], setSavingError = savingErrState[1];
+    var fileInputRef = useRef(null);
+
+    function persist(nextTransactions, nextCustomCategories, nextBudgets) {
+      try {
+        KB.storageAPI.set(KB.STORAGE_KEY, JSON.stringify({
+          transactions: nextTransactions, customCategories: nextCustomCategories,
+          budgets: nextBudgets !== undefined ? nextBudgets : budgets,
+        }));
+        setSavingError(false);
+      } catch (e) { setSavingError(true); }
+    }
+
+    function addTransaction(tx, newCustomCategory) {
+      var nextTx = transactions.concat([tx]);
+      var nextCats = newCustomCategory ? customCategories.concat([newCustomCategory]) : customCategories;
+      setTransactions(nextTx); setCustomCategories(nextCats); persist(nextTx, nextCats);
+    }
+
+    function deleteTransaction(id) {
+      if (!window.confirm('Diesen Eintrag wirklich löschen?')) return;
+      var nextTx = transactions.filter(function (t) { return t.id !== id; });
+      setTransactions(nextTx); persist(nextTx, customCategories);
+    }
+
+    function importTransactions(importedTx, newCustomCats, message) {
+      var nextTx = transactions.concat(importedTx);
+      var nextCats = customCategories.concat(newCustomCats);
+      setTransactions(nextTx); setCustomCategories(nextCats); persist(nextTx, nextCats);
+      setInfoMsg(message);
+      setTimeout(function () { setInfoMsg(''); }, 5000);
+    }
+
+    function handleResetAll() {
+      if (!window.confirm('Wirklich ALLE Buchungen unwiderruflich löschen?')) return;
+      setTransactions([]); setCustomCategories([]); setBudgets({}); persist([], [], {});
+      setInfoMsg('Alle Daten wurden gelöscht.');
+      setTimeout(function () { setInfoMsg(''); }, 4000);
+    }
+
+    function saveBudgets(nextBudgets) {
+      setBudgets(nextBudgets);
+      persist(transactions, customCategories, nextBudgets);
+      setIsBudgetFormOpen(false);
+    }
+
+    var monthTx = useMemo(function () { return transactions.filter(function (t) { return t.date.slice(0, 7) === viewedMonth; }); }, [transactions, viewedMonth]);
+    var totalIncome = useMemo(function () { return monthTx.filter(function (t) { return t.type === 'income'; }).reduce(function (s, t) { return s + t.amount; }, 0); }, [monthTx]);
+    var totalExpense = useMemo(function () { return monthTx.filter(function (t) { return t.type === 'expense'; }).reduce(function (s, t) { return s + t.amount; }, 0); }, [monthTx]);
+    var saldo = totalIncome - totalExpense;
+
+    var prevMonthStr = useMemo(function () { return KB.shiftMonth(viewedMonth, -1); }, [viewedMonth]);
+    var prevMonthTx = useMemo(function () { return transactions.filter(function (t) { return t.date.slice(0, 7) === prevMonthStr; }); }, [transactions, prevMonthStr]);
+    var prevIncome = useMemo(function () { return prevMonthTx.filter(function (t) { return t.type === 'income'; }).reduce(function (s, t) { return s + t.amount; }, 0); }, [prevMonthTx]);
+    var prevExpense = useMemo(function () { return prevMonthTx.filter(function (t) { return t.type === 'expense'; }).reduce(function (s, t) { return s + t.amount; }, 0); }, [prevMonthTx]);
+    var incomeDelta = prevIncome > 0 ? Math.round(((totalIncome - prevIncome) / prevIncome) * 100) : null;
+    var expenseDelta = prevExpense > 0 ? Math.round(((totalExpense - prevExpense) / prevExpense) * 100) : null;
+
+    var categoryBreakdown = useMemo(function () { return computeCategoryBreakdown(monthTx, customCategories, budgets); }, [monthTx, customCategories, budgets]);
+    var sortedLedger = useMemo(function () {
+      return monthTx.slice().sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+    }, [monthTx]);
+
+    var analysisMonths = useMemo(function () {
+      var months = [];
+      for (var i = analysisRange - 1; i >= 0; i--) months.push(KB.shiftMonth(KB.currentMonthStr(), -i));
+      return months;
+    }, [analysisRange]);
+
+    var monthlySeries = useMemo(function () {
+      return analysisMonths.map(function (m) {
+        var txs = transactions.filter(function (t) { return t.date.slice(0, 7) === m; });
+        var Einnahmen = txs.filter(function (t) { return t.type === 'income'; }).reduce(function (s, t) { return s + t.amount; }, 0);
+        var Ausgaben = txs.filter(function (t) { return t.type === 'expense'; }).reduce(function (s, t) { return s + t.amount; }, 0);
+        return { month: m, label: KB.formatMonthLabelShort(m), Einnahmen: Einnahmen, Ausgaben: Ausgaben, Saldo: Math.round((Einnahmen - Ausgaben) * 100) / 100 };
+      });
+    }, [transactions, analysisMonths]);
+
+    var rangeTx = useMemo(function () { return transactions.filter(function (t) { return analysisMonths.indexOf(t.date.slice(0, 7)) !== -1; }); }, [transactions, analysisMonths]);
+    var rangeIncome = useMemo(function () { return rangeTx.filter(function (t) { return t.type === 'income'; }).reduce(function (s, t) { return s + t.amount; }, 0); }, [rangeTx]);
+    var rangeExpense = useMemo(function () { return rangeTx.filter(function (t) { return t.type === 'expense'; }).reduce(function (s, t) { return s + t.amount; }, 0); }, [rangeTx]);
+    var avgMonthlyExpense = rangeExpense / analysisMonths.length;
+    var savingsRate = rangeIncome > 0 ? Math.round(((rangeIncome - rangeExpense) / rangeIncome) * 100) : null;
+
+    var rangeCategoryTotals = useMemo(function () {
+      return computeCategoryBreakdown(rangeTx, customCategories).slice(0, 8);
+    }, [rangeTx, customCategories]);
+
+    var biggestExpense = useMemo(function () {
+      var expenses = rangeTx.filter(function (t) { return t.type === 'expense'; }).slice().sort(function (a, b) { return b.amount - a.amount; });
+      return expenses[0] || null;
+    }, [rangeTx]);
+
+    var topCategoryOverall = rangeCategoryTotals[0] || null;
+
+    function handleExport() {
+      var csv = KB.buildExportCSV(transactions);
+      var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'klarblick-export-' + KB.todayLocalISO() + '.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function handleImportClick() { if (fileInputRef.current) fileInputRef.current.click(); }
+
+    function decodeCSVBuffer(buffer) {
+      var bytes = new Uint8Array(buffer);
+      // UTF-8-BOM? Dann ist es sauberes UTF-8 (z. B. eigener Export von Klarblick).
+      if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+        return new TextDecoder('utf-8').decode(bytes.subarray(3));
+      }
+      // Sparkasse & viele andere Banken exportieren als Windows-1252/ISO-8859-1, nicht UTF-8.
+      // Strikter UTF-8-Versuch: schlägt bei Umlauten in Latin-1-Dateien fehl -> dann Windows-1252 nehmen.
+      try {
+        return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      } catch (e) {
+        return new TextDecoder('windows-1252').decode(bytes);
+      }
+    }
+
+    function handleFileChange(e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        try {
+          var text = decodeCSVBuffer(reader.result);
+          var parsed = KB.parseCSV(text, ';');
+          var result = KB.mapImportRows(parsed.data, customCategories, transactions);
+          if (result.successCount > 0) {
+            var parts = [result.successCount + ' neu importiert.'];
+            if (result.duplicateCount > 0) parts.push(result.duplicateCount + ' bereits vorhanden (übersprungen).');
+            if (result.pendingSkipped > 0) parts.push(result.pendingSkipped + ' noch nicht gebucht (übersprungen, kommen beim nächsten Export).');
+            if (result.failCount > 0) parts.push(result.failCount + ' fehlerhafte Zeilen übersprungen.');
+            importTransactions(result.importedTx, result.newCats, parts.join(' '));
+          } else if (result.duplicateCount > 0 || result.pendingSkipped > 0) {
+            var skipParts = [];
+            if (result.duplicateCount > 0) skipParts.push(result.duplicateCount + ' bereits vorhanden');
+            if (result.pendingSkipped > 0) skipParts.push(result.pendingSkipped + ' noch nicht gebucht');
+            setInfoMsg('Keine neuen Buchungen (' + skipParts.join(', ') + ').');
+            setTimeout(function () { setInfoMsg(''); }, 5000);
+          } else {
+            setErrorMsg('Keine gültigen Zeilen gefunden.');
+            setTimeout(function () { setErrorMsg(''); }, 6000);
+          }
+        } catch (err) {
+          setErrorMsg('Die Datei konnte nicht gelesen werden.');
+          setTimeout(function () { setErrorMsg(''); }, 6000);
+        }
+      };
+      reader.onerror = function () {
+        setErrorMsg('Die Datei konnte nicht gelesen werden.');
+        setTimeout(function () { setErrorMsg(''); }, 6000);
+      };
+      reader.readAsArrayBuffer(file);
+      e.target.value = '';
+    }
+
+    /* ---------- Übersicht-Tab ---------- */
+    function renderUebersicht() {
+      return h(React.Fragment, null,
+        h('div', { className: 'kb-subheader' },
+          h('span', { className: 'kb-subheader-title' }, 'Monatsübersicht'),
+          h('div', { className: 'kb-month-nav' },
+            h('button', { className: 'kb-icon-btn', onClick: function () { setViewedMonth(function (m) { return KB.shiftMonth(m, -1); }); }, 'aria-label': 'Vorheriger Monat' }, h(Icon, { name: 'chevronLeft', size: 18 })),
+            h('span', { className: 'kb-month-label' }, KB.formatMonthLabel(viewedMonth)),
+            h('button', { className: 'kb-icon-btn', onClick: function () { setViewedMonth(function (m) { return KB.shiftMonth(m, 1); }); }, 'aria-label': 'Nächster Monat' }, h(Icon, { name: 'chevronRight', size: 18 }))
+          )
+        ),
+        h('section', { className: 'kb-summary-row' },
+          h('div', { className: 'kb-summary-card' },
+            h('span', { className: 'kb-summary-label' }, 'Einnahmen'),
+            h('span', { className: 'kb-summary-value income' }, KB.formatCurrency(totalIncome)),
+            incomeDelta !== null ? h('span', { className: 'kb-delta ' + (incomeDelta >= 0 ? 'up' : 'down') },
+              h(Icon, { name: incomeDelta >= 0 ? 'arrowUp' : 'arrowDown', size: 12 }), Math.abs(incomeDelta) + '% ggü. Vormonat') : null
+          ),
+          h('div', { className: 'kb-summary-card' },
+            h('span', { className: 'kb-summary-label' }, 'Ausgaben'),
+            h('span', { className: 'kb-summary-value expense' }, KB.formatCurrency(totalExpense)),
+            expenseDelta !== null ? h('span', { className: 'kb-delta ' + (expenseDelta > 0 ? 'bad' : 'good') },
+              h(Icon, { name: expenseDelta >= 0 ? 'arrowUp' : 'arrowDown', size: 12 }), Math.abs(expenseDelta) + '% ggü. Vormonat') : null
+          ),
+          h('div', { className: 'kb-summary-card' },
+            h('span', { className: 'kb-summary-label' }, 'Saldo'),
+            h('span', { className: 'kb-summary-value ' + (saldo >= 0 ? 'income' : 'expense') }, KB.formatCurrency(saldo))
+          )
+        ),
+        h('section', { className: 'kb-main-grid' },
+          h('div', { className: 'kb-panel' },
+            h('div', { className: 'kb-panel-title-row' },
+              h('h3', { className: 'kb-panel-title' }, 'Ausgaben nach Kategorie'),
+              h('button', { type: 'button', className: 'kb-budget-toggle-btn', onClick: function () { setIsBudgetFormOpen(true); } },
+                h(Icon, { name: 'sliders', size: 14 }), 'Budgets'
+              )
+            ),
+            categoryBreakdown.length === 0
+              ? h('div', { className: 'kb-empty' },
+                  h('p', null, 'Noch keine Ausgaben in ' + KB.formatMonthLabel(viewedMonth) + '.'),
+                  h('button', { className: 'kb-btn kb-btn-primary', onClick: function () { setIsFormOpen(true); } }, 'Erste Ausgabe erfassen')
+                )
+              : h('div', { className: 'kb-chart-wrap' },
+                  h('div', { className: 'kb-donut' },
+                    h(DonutChart, { data: categoryBreakdown }),
+                    h('div', { className: 'kb-donut-center' },
+                      h('span', { className: 'kb-donut-total' }, KB.formatCurrency(totalExpense)),
+                      h('span', { className: 'kb-donut-caption' }, 'gesamt')
+                    )
+                  ),
+                  h('ul', { className: 'kb-legend' }, categoryBreakdown.map(function (entry) {
+                    var pct = totalExpense > 0 ? Math.round((entry.value / totalExpense) * 100) : 0;
+                    var isOver = entry.budget !== null && entry.value > entry.budget;
+                    return h('li', { key: entry.name, className: 'kb-legend-row' },
+                      h('div', { className: 'kb-legend-top' },
+                        h('span', { className: 'kb-legend-dot', style: { background: entry.meta.color } }),
+                        h(Icon, { name: entry.meta.icon, size: 14, className: 'kb-legend-icon' }),
+                        h('span', { className: 'kb-legend-name' }, entry.name),
+                        h('span', { className: 'kb-legend-pct' }, pct + '%'),
+                        h('span', { className: 'kb-legend-value' }, KB.formatCurrency(entry.value))
+                      ),
+                      entry.budget !== null ? h('div', { className: 'kb-budget-bar-track' },
+                        h('div', {
+                          className: 'kb-budget-bar-fill',
+                          style: { width: entry.budgetPct + '%', background: isOver ? 'var(--expense)' : entry.meta.color }
+                        })
+                      ) : null,
+                      entry.budget !== null ? h('span', { className: 'kb-budget-note' + (isOver ? ' over' : '') },
+                        isOver
+                          ? ('Budget um ' + KB.formatCurrency(Math.abs(entry.budgetRemaining)) + ' überschritten (Limit ' + KB.formatCurrency(entry.budget) + ')')
+                          : ('noch ' + KB.formatCurrency(entry.budgetRemaining) + ' übrig von ' + KB.formatCurrency(entry.budget))
+                      ) : null
+                    );
+                  }))
+                )
+          ),
+          h('div', { className: 'kb-panel' },
+            h('h3', { className: 'kb-panel-title' }, 'Buchungen – ' + KB.formatMonthLabel(viewedMonth)),
+            sortedLedger.length === 0
+              ? h('div', { className: 'kb-empty' }, h('p', null, 'Keine Buchungen in diesem Monat.'))
+              : h('ul', { className: 'kb-ledger' }, sortedLedger.map(function (t) {
+                  var meta = KB.getCategoryMeta(t.category, t.type, customCategories);
+                  return h('li', { key: t.id, className: 'kb-ledger-row' },
+                    h('span', { className: 'kb-ledger-icon', style: { background: meta.color + '1A', color: meta.color } }, h(Icon, { name: meta.icon, size: 16 })),
+                    h('span', { className: 'kb-ledger-main' },
+                      h('span', { className: 'kb-ledger-category' }, t.category),
+                      t.note ? h('span', { className: 'kb-ledger-note' }, t.note) : null
+                    ),
+                    h('span', { className: 'kb-ledger-date' }, KB.formatDateShort(t.date)),
+                    h('span', { className: 'kb-ledger-amount ' + (t.type === 'income' ? 'income' : 'expense') }, (t.type === 'income' ? '+ ' : '− ') + KB.formatCurrency(t.amount)),
+                    h('button', { className: 'kb-ledger-delete', onClick: function () { deleteTransaction(t.id); }, 'aria-label': 'Eintrag löschen' }, h(Icon, { name: 'trash', size: 15 }))
+                  );
+                }))
+          )
+        )
+      );
+    }
+
+    /* ---------- Auswertungen-Tab ---------- */
+    function renderAuswertungen() {
+      if (rangeTx.length === 0) {
+        return h('section', { className: 'kb-analysis' },
+          h('div', { className: 'kb-analysis-header' },
+            h('span', { className: 'kb-subheader-title' }, 'Auswertungen'),
+            renderRangeToggle()
+          ),
+          h('div', { className: 'kb-panel' },
+            h('div', { className: 'kb-empty' },
+              h('p', null, 'Noch keine Buchungen in den letzten ' + analysisRange + ' Monaten. Sobald du Ausgaben oder Einnahmen erfasst, erscheinen hier Diagramme und Kennzahlen.'),
+              h('button', { className: 'kb-btn kb-btn-primary', onClick: function () { setIsFormOpen(true); } }, 'Erste Buchung erfassen')
+            )
+          )
+        );
+      }
+      return h('section', { className: 'kb-analysis' },
+        h('div', { className: 'kb-analysis-header' },
+          h('span', { className: 'kb-subheader-title' }, 'Auswertungen'),
+          renderRangeToggle()
+        ),
+        h('div', { className: 'kb-insight-row' },
+          h('div', { className: 'kb-insight-card' },
+            h('span', { className: 'kb-insight-label' }, 'Ø Ausgaben / Monat'),
+            h('span', { className: 'kb-insight-value' }, KB.formatCurrency(avgMonthlyExpense)),
+            h('span', { className: 'kb-insight-sub' }, 'über ' + analysisRange + ' Monate')
+          ),
+          h('div', { className: 'kb-insight-card' },
+            h('span', { className: 'kb-insight-label' }, 'Sparquote'),
+            h('span', { className: 'kb-insight-value', style: savingsRate !== null ? { color: savingsRate >= 0 ? 'var(--income)' : 'var(--expense)' } : undefined }, savingsRate !== null ? savingsRate + '%' : '–'),
+            h('span', { className: 'kb-insight-sub' }, savingsRate !== null ? 'der Einnahmen übrig' : 'keine Einnahmen erfasst')
+          ),
+          h('div', { className: 'kb-insight-card' },
+            h('span', { className: 'kb-insight-label' }, 'Größte Einzelausgabe'),
+            h('span', { className: 'kb-insight-value' }, biggestExpense ? KB.formatCurrency(biggestExpense.amount) : '–'),
+            h('span', { className: 'kb-insight-sub' }, biggestExpense ? (biggestExpense.category + ' · ' + KB.formatDateShort(biggestExpense.date)) : 'keine Ausgaben erfasst')
+          ),
+          h('div', { className: 'kb-insight-card' },
+            h('span', { className: 'kb-insight-label' }, 'Top-Kategorie'),
+            h('span', { className: 'kb-insight-value' }, topCategoryOverall ? KB.formatCurrency(topCategoryOverall.value) : '–'),
+            h('span', { className: 'kb-insight-sub' }, topCategoryOverall ? topCategoryOverall.name : 'keine Ausgaben erfasst')
+          )
+        ),
+        h('div', { className: 'kb-panel' },
+          h('h3', { className: 'kb-panel-title' }, 'Einnahmen vs. Ausgaben'),
+          h(GroupedBarChart, { data: monthlySeries })
+        ),
+        h('div', { className: 'kb-analysis-grid' },
+          h('div', { className: 'kb-panel' },
+            h('h3', { className: 'kb-panel-title' }, 'Saldo-Verlauf'),
+            h(LineChartSVG, { data: monthlySeries, dataKey: 'Saldo' }),
+            h('p', { className: 'kb-chart-caption' }, 'Einnahmen minus Ausgaben, Monat für Monat.')
+          ),
+          h('div', { className: 'kb-panel' },
+            h('h3', { className: 'kb-panel-title' }, 'Top-Kategorien im Zeitraum'),
+            h(HBarChart, { data: rangeCategoryTotals })
+          )
+        )
+      );
+    }
+
+    function renderRangeToggle() {
+      return h('div', { className: 'kb-range-toggle' },
+        [3, 6, 12].map(function (n) {
+          return h('button', { type: 'button', key: n, className: 'kb-range-btn' + (analysisRange === n ? ' active' : ''), onClick: function () { setAnalysisRange(n); } }, n + ' Monate');
+        })
+      );
+    }
+
+    return h('div', { className: 'kb-root' },
+      h('input', { type: 'file', accept: '.csv', ref: fileInputRef, onChange: handleFileChange, style: { display: 'none' } }),
+      h('header', { className: 'kb-header' },
+        h('div', { className: 'kb-brand' },
+          h('span', { className: 'kb-brand-mark' }, 'Klarblick'),
+          h('span', { className: 'kb-brand-sub' }, 'Deine Ausgaben, manuell erfasst')
+        ),
+        h('nav', { className: 'kb-tabs', role: 'tablist', 'aria-label': 'Ansicht wählen' },
+          h('button', { type: 'button', role: 'tab', 'aria-selected': activeTab === 'uebersicht', className: 'kb-tab' + (activeTab === 'uebersicht' ? ' active' : ''), onClick: function () { setActiveTab('uebersicht'); } }, 'Übersicht'),
+          h('button', { type: 'button', role: 'tab', 'aria-selected': activeTab === 'auswertungen', className: 'kb-tab' + (activeTab === 'auswertungen' ? ' active' : ''), onClick: function () { setActiveTab('auswertungen'); } }, 'Auswertungen')
+        ),
+        h('button', { className: 'kb-btn kb-btn-primary', onClick: function () { setIsFormOpen(true); } }, h(Icon, { name: 'plus', size: 16 }), ' Eintrag hinzufügen')
+      ),
+      savingError ? h('p', { className: 'kb-banner-error' }, 'Die letzte Änderung konnte nicht gespeichert werden. Bitte versuch es erneut.') : null,
+      errorMsg ? h('p', { className: 'kb-banner-error' }, errorMsg) : null,
+      infoMsg ? h('p', { className: 'kb-banner-info' }, infoMsg) : null,
+      activeTab === 'uebersicht' ? renderUebersicht() : renderAuswertungen(),
+      h('footer', { className: 'kb-footer' },
+        h('span', { className: 'kb-security-note' }, h(Icon, { name: 'shield', size: 14 }), ' Keine Bankverbindung – alle Daten trägst du selbst ein und sie bleiben nur auf diesem PC.'),
+        h('div', { className: 'kb-footer-actions' },
+          h('button', { className: 'kb-btn kb-btn-ghost', onClick: handleImportClick, title: 'Erwartet CSV-Dateien (auch direkt von der Sparkasse). Du kannst jederzeit den kompletten Kontoauszug erneut exportieren und importieren – bereits vorhandene Buchungen werden automatisch erkannt und übersprungen.' }, h(Icon, { name: 'upload', size: 14 }), ' CSV importieren'),
+          h('button', { className: 'kb-btn kb-btn-ghost', onClick: handleExport }, h(Icon, { name: 'download', size: 14 }), ' CSV exportieren'),
+          h('button', { className: 'kb-reset-link', onClick: handleResetAll }, 'Alle Daten zurücksetzen')
+        )
+      ),
+      isFormOpen ? h(TransactionForm, { customCategories: customCategories, onSubmit: addTransaction, onClose: function () { setIsFormOpen(false); } }) : null,
+      isBudgetFormOpen ? h(BudgetForm, { budgets: budgets, customCategories: customCategories, onSave: saveBudgets, onClose: function () { setIsBudgetFormOpen(false); } }) : null
+    );
+  }
+
+  window.KB = window.KB || {};
+  window.KB.Klarblick = Klarblick;
+})();
+
+</script>
+<script>
+(function () {
+  'use strict';
+  function showFatalError(err) {
+    var root = document.getElementById('root');
+    root.innerHTML =
+      '<div class="kb-root kb-loading-screen">' +
+      '<p><strong>Klarblick konnte nicht gestartet werden.</strong></p>' +
+      '<p style="font-size:12px;max-width:420px;text-align:center;">' +
+      'Bitte stelle sicher, dass beim ersten Öffnen eine Internetverbindung besteht ' +
+      '(React wird einmalig von einem CDN geladen) und lade die Seite neu (F5). ' +
+      'Technische Meldung: ' + (err && err.message ? err.message : String(err)) +
+      '</p></div>';
+  }
+  try {
+    if (!window.React || !window.ReactDOM) {
+      throw new Error('React konnte nicht geladen werden (keine Internetverbindung?).');
+    }
+    var container = document.getElementById('root');
+    var root = ReactDOM.createRoot(container);
+    root.render(React.createElement(window.KB.Klarblick));
+  } catch (err) {
+    console.error(err);
+    showFatalError(err);
+  }
+})();
+</script>
+</body>
+</html>
